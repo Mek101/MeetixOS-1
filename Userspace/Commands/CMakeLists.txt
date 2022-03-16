@@ -12,6 +12,7 @@
 
 add_subdirectory(Copy)
 add_subdirectory(CpuDetect)
+add_subdirectory(DyLd)
 add_subdirectory(Echo)
 add_subdirectory(FileId)
 add_subdirectory(Find)
