@@ -12,10 +12,10 @@
 
 #include "ElfLoader.hh"
 #include "ElfLoader.hhi"
-#include "../ElfDynamicObject.hh"
+
 
 namespace {
-    ElfLoadResult<std::unique_ptr<Elf32Ehdr>> parse_header(i32 fd) {
+    ElfLoadResult<std::unique_ptr<Elf32Ehdr>> parse_header(const FileHandle fd) {
         // Still unverified header.
         auto header_res = map_to_struct<Elf32Ehdr>(fd, 0);
         if ( header_res.is_error() ) {
@@ -51,7 +51,7 @@ namespace {
         return header_ptr;
     }
 
-    ElfLoadResult<TC::Collection::Vector<Elf32Phdr>> parse_program_headers(Elf32Ehdr& header, FileHandle fd, usize file_size) {
+    ElfLoadResult<TC::Collection::Vector<Elf32Phdr>> parse_program_headers(const Elf32Ehdr& header, const FileHandle fd, const usize file_size) {
         auto filter = [](const Elf32Phdr& header) {
             // Filter loadable, dynamic, program header and thread local storage headers.
             return header.p_type == PT_LOAD || header.p_type == PT_DYNAMIC ||
@@ -63,7 +63,7 @@ namespace {
         return parse_headers<Elf32Phdr>(fd, header.e_phoff, header.e_phentsize, header.e_phnum, file_size, filter, sort);
     }
 
-    ElfLoadResult<TC::Collection::Vector<Elf32Shdr>> parse_section_headers(Elf32Ehdr& header, FileHandle fd, usize file_size) {
+    ElfLoadResult<TC::Collection::Vector<Elf32Shdr>> parse_section_headers(const Elf32Ehdr& header, const FileHandle fd, const usize file_size) {
         auto filter = [](const Elf32Shdr& header) {
             // Filter out null, notes and reserved segments.
             return header.sh_type != SHT_NULL && header.sh_type != SHT_NOTE && header.sh_type != SHT_SHLIB;
@@ -74,7 +74,7 @@ namespace {
         return parse_headers<Elf32Shdr>(fd, header.e_shoff, header.e_shentsize, header.e_shnum, file_size, filter, sort);
     }
 
-    void* allocate_at(usize address, usize alloc_size) {
+    void* allocate_at(const usize address, const usize alloc_size) {
         // Using this syscall until a user API is provided
         //return s_create_pages_in_spaces(, address, alloc_size);
     }
@@ -100,7 +100,7 @@ namespace {
         return std::unique_ptr<u8[]> { allocation };
     }
 
-    ElfLoadResult<LoadedSegments> load_segments(TC::Collection::Vector<Elf32Phdr> prog_headers, FileHandle fd, usize file_size, const Elf32Ehdr& header) {
+    ElfLoadResult<LoadedSegments> load_segments(const TC::Collection::Vector<Elf32Phdr>& prog_headers, const FileHandle fd, const usize file_size, const Elf32Ehdr& header) {
         auto loaded_segments = LoadedSegments {};
 
         for ( auto prog_header : prog_headers ) {
@@ -119,28 +119,25 @@ namespace {
                 }
                 auto allocation = allocation_res.unwrap_value();
                 switch ( prog_header.p_type ) {
-                    case PT_LOAD: {
+                    case PT_LOAD:
                         loaded_segments.load.push_back(SegmentInfo{ prog_header, std::move(allocation) });
                         break;
-                    }
-                    case PT_DYNAMIC: {
+                    case PT_DYNAMIC:
                         loaded_segments.dynamic.push_back(
                             SegmentInfo{ prog_header, std::move(allocation) });
                         break;
-                    }
                     case PT_TLS:
                         loaded_segments.tls.push_back(SegmentInfo { prog_header, std::move(allocation) });
                         break;
                     default:
                         return ElfLoadError::UnknownLoadError;
-
                 }
             }
         }
         return loaded_segments;
     }
 
-    ElfLoadResult<LoadedSections> load_sections(TC::Collection::Vector<Elf32Shdr> sect_headers, FileHandle fd, usize file_size) {
+    ElfLoadResult<LoadedSections> load_sections(const TC::Collection::Vector<Elf32Shdr> &sect_headers, const FileHandle fd, const usize file_size) {
         auto loaded_sections = LoadedSections {};
 
         for ( auto sect_header : sect_headers ) {
@@ -188,7 +185,7 @@ namespace {
     }
 }
 
-ElfLoadResult<LoadedElf> try_load(std::string const& target_path) {
+ElfLoadResult<LoadedElf> try_load(const std::string& target_path) {
     // Open the file.
     auto target_fd = s_open_f(target_path.c_str(), FILE_FLAG_MODE_READ | FILE_FLAG_MODE_BINARY);
     if ( target_fd < 1 ) {

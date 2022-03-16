@@ -2,13 +2,13 @@
 // Created by mek101 on 16/03/22.
 //
 
+#pragma once
+
 #include <vector>
 #include <optional>
 #include <memory>
 
 #include <Api/ELF32.h>
-
-#pragma once
 
 struct SegmentInfo {
     Elf32Phdr header;

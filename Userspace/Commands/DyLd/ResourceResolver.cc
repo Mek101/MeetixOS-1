@@ -2,9 +2,12 @@
 // Created by mek101 on 10/03/22.
 //
 
+#pragma once
+
 #include <cstdlib>
 #include <string>
 #include <optional>
+
 #include <Api/utils/local.hpp>
 
 #include "ResourceResolver.hh"
@@ -16,7 +19,6 @@ enum class ResourceType {
     AbsolutePath,
     RelativePath
 };
-
 
 std::optional<std::string> get_working_directory() {
     Local work_dir_buffer { new char[PATH_MAX] };
@@ -33,7 +35,7 @@ std::optional<std::string> get_working_directory() {
     return std::nullopt;
 }
 
-ResourceType identify_type(std::string &target) {
+ResourceType identify_type(const std::string& target) {
     // Too short
     if (target.length() < 1) {
         return ResourceType::Error;
@@ -49,16 +51,16 @@ ResourceType identify_type(std::string &target) {
 }
 
 ResourceResolver::ResourceResolver(std::vector<std::string> include_dirs) {
-    this->include_dirs = include_dirs;
+    this->m_include_dirs = include_dirs;
 }
 
-ResourceResult<std::shared_ptr<ElfDynamicObject>> ResourceResolver::resolve(std::string &target) {
+ResourceResult<std::shared_ptr<ElfDynamicObject>> ResourceResolver::resolve(const std::string& target) {
     auto type = identify_type(target);
 
     switch ( type ) {
         case ResourceType::Name: {
             // Search and try loading the ELF form the included directories.
-            for ( const auto& dir : this->include_dirs ) {
+            for ( const auto& dir : this->m_include_dirs ) {
                 auto load_res = this->get_from_path(target);
                 if ( load_res.is_value() ) {
                     return load_res.value();
@@ -87,8 +89,8 @@ ResourceResult<std::shared_ptr<ElfDynamicObject>> ResourceResolver::resolve(std:
     }
 }
 
-ResourceResult<std::shared_ptr<ElfDynamicObject>> ResourceResolver::get_from_path(std::string &target_path) {
-    auto cached_val = this->cache.get(target_path);
+ResourceResult<std::shared_ptr<ElfDynamicObject>> ResourceResolver::get_from_path(const std::string& target_path) {
+    auto cached_val = this->m_cache.get(target_path);
     if ( cached_val != nullptr ) {
         return cached_val->value;
     }
@@ -101,7 +103,7 @@ ResourceResult<std::shared_ptr<ElfDynamicObject>> ResourceResolver::get_from_pat
         // Now resolve and relocate it
 
 
-        this->cache.add(target_path, ptr);
+        this->m_cache.add(target_path, ptr);
         return ptr;
     } else {
         return ResourceError::LoadError;

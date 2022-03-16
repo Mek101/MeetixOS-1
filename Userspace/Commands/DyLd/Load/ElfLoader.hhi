@@ -2,13 +2,14 @@
 // Created by mek101 on 10/03/22.
 //
 
+#pragma once
+
 #include <functional>
 
 #include <LibTC/Collection/Vector.hh>
 
 #include "ElfLoader.hh"
 
-#pragma once
 
 namespace {
     template<typename T>

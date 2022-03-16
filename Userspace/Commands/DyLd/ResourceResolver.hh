@@ -2,6 +2,8 @@
 // Created by mek101 on 10/03/22.
 //
 
+#pragma once
+
 #include <string>
 #include <vector>
 #include <optional>
@@ -13,7 +15,8 @@
 #include "Load/ElfLoader.hh"
 #include "utils/HashMap.hpp"
 
-enum ResourceError {
+
+enum class ResourceError {
     BadTarget,
     TargetNotFound,
     LoadError,
@@ -27,11 +30,11 @@ class ResourceResolver {
 public:
     explicit ResourceResolver(std::vector<std::string> include_dirs);
 
-    ResourceResult<std::shared_ptr<ElfDynamicObject>> resolve(std::string &target);
+    ResourceResult<std::shared_ptr<ElfDynamicObject>> resolve(const std::string& target);
 
 private:
-    std::vector<std::string> include_dirs;
-    HashMap<std::string, std::shared_ptr<ElfDynamicObject>> cache;
+    std::vector<std::string> m_include_dirs;
+    HashMap<std::string, std::shared_ptr<ElfDynamicObject>> m_cache;
 
-    ResourceResult<std::shared_ptr<ElfDynamicObject>> get_from_path(std::string &target_path);
+    ResourceResult<std::shared_ptr<ElfDynamicObject>> get_from_path(const std::string& target_path);
 };

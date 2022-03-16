@@ -2,6 +2,8 @@
 // Created by mek101 on 14/03/22.
 //
 
+#pragma once
+
 #include <string>
 #include <memory>
 
@@ -10,9 +12,8 @@
 #include "../ElfDynamicObject.hh"
 #include "../Definitions.hh"
 
-#pragma once
 
-enum ElfLoadError {
+enum class ElfLoadError {
     IOError,
     FormatError,
     UnsupportedElfError,

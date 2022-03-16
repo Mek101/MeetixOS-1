@@ -2,6 +2,8 @@
 // Created by mek101 on 10/03/22.
 //
 
+#pragma once
+
 #include <optional>
 #include <vector>
 #include <memory>
